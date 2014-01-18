@@ -29,8 +29,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.avro.reflect.Stringable;
 import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
 
+
+/** This class stores the header and field content using UTF8 encoding,
+ * and exposes a map interface for user to query the content fields using
+ * header key. <p>Each header key can only contain word characters [a-zA-Z_0-9] 
+ * so that it can be easily processed by downstream programs. <p>This class also
+ * extends BinaryComparable and has fast run-time performance during shuffling.
+ */
+@Stringable
+@InterfaceAudience.Public
+@InterfaceStability.Unstable
 public class FieldWritable extends BinaryComparable
     implements WritableComparable<BinaryComparable>, Map<String, String>{
   
@@ -42,20 +55,88 @@ public class FieldWritable extends BinaryComparable
     instance = new HashMap<String, String>();
     content = new Text();
   }
-  /*
-   * (non-Javadoc)
-   * @see org.apache.hadoop.io.BinaryComparable#getBytes()
-   * Need to add constructors to make it easy to use.
+  
+  /** Construct fields from two String arrays
+   * @param headers should only contain word characters [a-zA-Z_0-9], 
+   * so that it can be easily processed by downstream programs.
+   * @param contents should not contain tabs
    */
-
+  public FieldWritable(String [] headers, String [] contents){
+    set(headers, contents);
+  }
+  
+  /**
+   * Construct fields with header string and content string.
+   * String will be split to fields by split_regex
+   * @param header should only contain word characters [a-zA-Z_0-9],
+   * so that it can be easily processed by downstream programs.
+   * @param content each content field should not contain tabs.
+   * Tabs are used for separation for internal use. Even if you use comma
+   * separation, you cannot contain tab in each field.
+   * @param split_regex Regex for splitting strings.
+   */
+  public FieldWritable(String header, String content, String split_regex){
+    String [] headers = header.split(split_regex);
+    String [] contents = content.split(split_regex);
+    set(headers, contents);
+  }
+  
+  /**
+   * Construct fields with header string and content string.
+   * String will be split to fields by tabs
+   * @param header should only contain word characters [a-zA-Z_0-9],
+   * so that it can be easily processed by downstream programs.
+   * @param content each content field should not contain tabs.
+   */
+  public FieldWritable(String header, String content){
+    String split_regex = "\\t";
+    String [] headers = header.split(split_regex);
+    String [] contents = content.split(split_regex);
+    set(headers, contents);
+  }
+  
+  /** Constructor helper class
+   * @param headers
+   * @param contents
+   */
+  private void set(String [] headers, String [] contents){
+    if (headers.length != contents.length) throw new IllegalArgumentException("FieldWritable header & field lenth don't match");
+    for (int i = 0; i< headers.length; i++)
+      put(headers[i], contents[i]);
+    // A lazy way to construct the class, but we'll just keep it simple first
+  }
+  
+  /**
+   * Get the copy of content field's byte. Used by fast compareTo method
+   * in {@link org.apache.hadoop.io.BinaryComparable#getBytes}
+   */
   @Override
   public byte[] getBytes() {
     return content.getBytes();
   }
 
+  /**
+   * Get the copy of content field's length. Used by fast compareTo method
+   * in {@link org.apache.hadoop.io.BinaryComparable#getLength}
+   */
   @Override
   public int getLength() {
     return content.getLength();
+  }
+  
+  /**
+   * Get a copy of the header string array
+   */
+  public String [] getHeader (){
+    return header.clone();
+  }
+  
+  /**
+   * Return the content fields (without header)
+   */
+  @Override
+  public String toString(){
+    return content.toString();
   }
 
   @Override
@@ -115,11 +196,20 @@ public class FieldWritable extends BinaryComparable
     return instance.keySet();
   }
 
+  /**
+   * Append new header field and content field
+   * If header field exist, it will replace the old content field with
+   * new content.
+   * The field's order is as same as the insertion order
+   * @param key the new header field
+   * @param value the new content field
+   */
   @Override
   public String put(String key, String value) {
     // TODO, need document the behavior
     if (key.matches("\\W")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
     if (value.matches("\\t")) throw new IllegalArgumentException("field cannot contain tabs");
+    if (value.equals("")) value = "\\N";
     if (!instance.containsKey(key)){
       String new_header = StringUtils.join(header, "\t") + "\t" + key;
       header = new_header.split("\\t");
@@ -139,6 +229,11 @@ public class FieldWritable extends BinaryComparable
     return instance.put(key, value);
   }
 
+  /**
+   * For each key-value pair, runs @{put}
+   * Since we don't know exactly what the order of the map would be,
+   * this is not a recommended way to insert fields.
+   */
   @Override
   public void putAll(Map<? extends String, ? extends String> m) {
     // TODO, document bad behavior
@@ -147,6 +242,9 @@ public class FieldWritable extends BinaryComparable
     } 
   }
 
+  /**
+   * Removes a header-content pair.
+   */
   @Override
   public String remove(Object key) {
     // TODO: document bad behavior
