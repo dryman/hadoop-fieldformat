@@ -99,7 +99,7 @@ public class FieldWritable extends BinaryComparable
    * @param headers
    * @param contents
    */
-  private void set(String [] headers, String [] contents){
+  public void set(String [] headers, String [] contents){
     if (headers.length != contents.length) throw new IllegalArgumentException("FieldWritable header & field lenth don't match");
     for (int i = 0; i< headers.length; i++)
       put(headers[i], contents[i]);

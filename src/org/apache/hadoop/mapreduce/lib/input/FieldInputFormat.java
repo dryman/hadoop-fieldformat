@@ -1,3 +1,4 @@
+package org.apache.hadoop.mapreduce.lib.input;
 import java.io.IOException;
 
 import org.apache.hadoop.fs.Path;
@@ -16,10 +17,14 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 public class FieldInputFormat extends FileInputFormat <LongWritable, FieldWritable>{
 
   @Override
-  public RecordReader<LongWritable, FieldWritable> createRecordReader(InputSplit arg0,
-      TaskAttemptContext arg1) throws IOException, InterruptedException {
-    // TODO Auto-generated method stub
-    return null;
+  public RecordReader<LongWritable, FieldWritable> createRecordReader(InputSplit split,
+      TaskAttemptContext context) throws IOException, InterruptedException {
+    String delimiter = context.getConfiguration().get(
+        "textinputformat.record.delimiter");
+    byte[] recordDelimiterBytes = null;
+    if (null != delimiter)
+      recordDelimiterBytes = delimiter.getBytes();
+    return new FieldRecordReader(recordDelimiterBytes);
   }
 
   @Override
