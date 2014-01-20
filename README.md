@@ -3,6 +3,13 @@ hadoop-fieldformat
 
 Structured input, output, and writable classes for map-reduce
 
+DONE
+----
+
+0. `FieldWritable` Working implementation with tests. It captures failure aggresively, but the performance need to be enhanced.
+1. `FieldInputFormat` Ok implementation but not tests yet.
+2. `FieldRecordReader` Same as above.
+
 TODO
 ----
 

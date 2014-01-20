@@ -100,7 +100,12 @@ public class FieldWritable extends BinaryComparable
    * @param contents
    */
   public void set(String [] headers, String [] contents){
-    if (headers.length != contents.length) throw new IllegalArgumentException("FieldWritable header & field lenth don't match");
+    if (headers.length != contents.length) {
+      for (int i=0; i< contents.length; i++)
+        System.err.println(i + "\t" + contents[i]); 
+      throw new IllegalArgumentException("FieldWritable header & field lenth don't match. header: " 
+         +headers.length + " content: " + contents.length );
+    }
     for (int i = 0; i< headers.length; i++)
       put(headers[i], contents[i]);
     // A lazy way to construct the class, but we'll just keep it simple first
@@ -210,19 +215,31 @@ public class FieldWritable extends BinaryComparable
     if (key.matches("\\W")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
     if (value.matches("\\t")) throw new IllegalArgumentException("field cannot contain tabs");
     if (value.equals("")) value = "\\N";
-    if (!instance.containsKey(key)){
-      String new_header = StringUtils.join(header, "\t") + "\t" + key;
+    if (!instance.containsKey(key)){      
+      String new_header = (header == null) ? key : StringUtils.join(header, "\t") + "\t" + key;
       header = new_header.split("\\t");
       try {
-        ByteBuffer bb = Text.encode(value);
+        ByteBuffer bb;
+        if (content.toString().equals("")){
+          bb = Text.encode(value);
+        }else {
+          bb = Text.encode("\t"+ value);
+        }
         content.append(bb.array(), 0, bb.limit());
       } catch (CharacterCodingException e) {
         e.printStackTrace();
       }
     } else {
       int i = 0;
-      for (; !header[i].equals(key); i++);
+      for (; i < header.length && !header[i].equals(key); i++){;}
       String [] content_arr = content.toString().split("\\t");
+      System.out.println("content length: " + content_arr.length);
+      System.out.print("field writable: 226\nheader: ");
+      for (String s : header)
+        System.out.print(s + " ");
+      System.out.println("\ncontent: " + content);
+      System.out.println("index: "+ i);
+      
       content_arr[i] = value;
       content = new Text(StringUtils.join(content_arr, "\t"));
     }   
@@ -256,7 +273,7 @@ public class FieldWritable extends BinaryComparable
         content_lst.add(s);
       
       int i = 0;
-      for (; !header[i].equals(key); i++);
+      for (; i < header.length && !header[i].equals(key); i++);
       header_lst.remove(i);
       content_lst.remove(i);
       
