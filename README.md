@@ -13,12 +13,15 @@ DONE
 1. `FieldInputFormat` Ok implementation but not tests yet.
 2. `FieldRecordReader` Same as above.
 3. Follow maven dirtory structure
+2. Optimize FieldWritable construction (now it's 6 times slower than Text)
+  * It's now as fast as Text, but there's no possible error check
+  * The class interface is vague and confusing. Need to find some way to fix it
 
 TODOS
 -----
 
 1. Rationale
-2. Optimize FieldWritable construction (now it's 6 times slower than Text)
+2. Make `FieldWritable` interface cleaner and safer to use.
 4. Tests for FieldInputFormat, FieldRecordReader
 5. FieldOutputFormat, FieldOutputCommitter
 6. Test against MR1, MR2 apis

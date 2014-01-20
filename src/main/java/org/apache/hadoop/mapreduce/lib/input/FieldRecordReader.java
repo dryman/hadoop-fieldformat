@@ -161,7 +161,7 @@ public class FieldRecordReader extends RecordReader<LongWritable, FieldWritable>
       textValue = new Text();
     }
     if (value == null) {
-      value = new FieldWritable();      
+      value = new FieldWritable(header); 
     }
     int newSize = 0;
     // We always read one extra line, which lies outside the upper
@@ -187,9 +187,10 @@ public class FieldRecordReader extends RecordReader<LongWritable, FieldWritable>
       value = null;      
       return false;
     } else {
-      value.clear();
+      //value.clear();
       // TODO: need to be optimized
-      value.set(header, textValue.toString().split("\\t"));
+      value.updateContent(textValue);
+      //value.set(header, textValue.toString().split("\\t"));
       return true;
     }
   }
