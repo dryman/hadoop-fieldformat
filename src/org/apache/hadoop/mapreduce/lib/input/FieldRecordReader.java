@@ -88,16 +88,14 @@ public class FieldRecordReader extends RecordReader<LongWritable, FieldWritable>
     FileSystem fs = file.getFileSystem(job);
     Path headerPath;
     if (fs.isFile(split.getPath())){
-      System.out.println("This path is a file");
       headerPath = new Path(split.getPath().getParent().toString() + "/_logs/header.tsv");
     } else{
       headerPath = new Path(split.getPath().toString() + "/_logs/header.tsv");
     }
-    System.out.println("FieldReocrdReader reading path: "+ headerPath);
+    System.out.println("FieldReocrdReader reading header path: "+ headerPath);
     FSDataInputStream headerIn = fs.open(headerPath);
     BufferedReader br = new BufferedReader(new InputStreamReader(headerIn));
     String line = br.readLine();
-    System.out.println("header: "+line);
     header = line.split("\\t");
     br.close();
     

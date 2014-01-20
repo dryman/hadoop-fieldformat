@@ -1,7 +1,10 @@
 hadoop-fieldformat
 ==================
 
-Structured input, output, and writable classes for map-reduce
+Semi SQL-dump compatible input, output, and writable classes for map-reduce.
+
+Status: experimental
+--------------------
 
 DONE
 ----
@@ -10,14 +13,17 @@ DONE
 1. `FieldInputFormat` Ok implementation but not tests yet.
 2. `FieldRecordReader` Same as above.
 
-TODO
-----
+TODOS
+-----
 
 1. Rationale
-2. Implementations
-3. Test against MR1, MR2 apis
-4. Setting tests on MiniDFSCluster
-
+2. Optimize FieldWritable construction (now it's 6 times slower than Text)
+3. Follow maven dirtory structure
+4. Tests for FieldInputFormat, FieldRecordReader
+5. FieldOutputFormat, FieldOutputCommitter
+6. Test against MR1, MR2 apis
+7. Setting tests on MiniDFSCluster
+8. Option to use strict DB dump format (default to false)
 
 `FieldInputFormat` class reads the meta-data from /_logs/header.tsv, and turn the Text object into a Map instead of plain
 text representation. Also, `FieldOutputFormat` will insert the header information into the /_logs/header.tsv after

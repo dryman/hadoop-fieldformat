@@ -101,8 +101,6 @@ public class FieldWritable extends BinaryComparable
    */
   public void set(String [] headers, String [] contents){
     if (headers.length != contents.length) {
-      for (int i=0; i< contents.length; i++)
-        System.err.println(i + "\t" + contents[i]); 
       throw new IllegalArgumentException("FieldWritable header & field lenth don't match. header: " 
          +headers.length + " content: " + contents.length );
     }
@@ -233,13 +231,6 @@ public class FieldWritable extends BinaryComparable
       int i = 0;
       for (; i < header.length && !header[i].equals(key); i++){;}
       String [] content_arr = content.toString().split("\\t");
-      System.out.println("content length: " + content_arr.length);
-      System.out.print("field writable: 226\nheader: ");
-      for (String s : header)
-        System.out.print(s + " ");
-      System.out.println("\ncontent: " + content);
-      System.out.println("index: "+ i);
-      
       content_arr[i] = value;
       content = new Text(StringUtils.join(content_arr, "\t"));
     }   
