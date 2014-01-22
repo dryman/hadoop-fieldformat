@@ -56,6 +56,14 @@ public class FieldWritable extends BinaryComparable
     content = new Text();
   }
   
+  public FieldWritable(String [] header) {
+    this.header = header;
+    for (String key : this.header){
+      if (key.matches("\\W")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
+    }
+    instance = new HashMap<String,String>();
+  }
+  
   /** Construct fields from two String arrays
    * @param headers should only contain word characters [a-zA-Z_0-9], 
    * so that it can be easily processed by downstream programs.
@@ -109,6 +117,15 @@ public class FieldWritable extends BinaryComparable
     // A lazy way to construct the class, but we'll just keep it simple first
   }
   
+  public void updateContent(Text content){
+    this.content = content; // actually this is the same Text object...
+    String [] fields = this.content.toString().split("\\t");
+    int i;
+    for (i=0; i < header.length; i++){
+      instance.put(header[i], fields[i]);
+    }
+  }
+  
   /**
    * Get the copy of content field's byte. Used by fast compareTo method
    * in {@link org.apache.hadoop.io.BinaryComparable#getBytes}
@@ -150,6 +167,8 @@ public class FieldWritable extends BinaryComparable
     if (fields.length != header.length) throw new IllegalArgumentException("FieldWritable header & field lenth don't match");
     for (int i = 0; i < header.length; i++){
       String h = header[i], f = fields[i];
+      // we may not need to check value here?
+      // maybe it's better to check it on the write side
       if (h.matches("\\W"))
         throw new IllegalArgumentException("FieldWritable header can contains only word characters [a-zA-Z_0-9]");
       instance.put(h, f);
