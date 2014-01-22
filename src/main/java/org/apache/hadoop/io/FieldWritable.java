@@ -59,7 +59,7 @@ public class FieldWritable extends BinaryComparable
   public FieldWritable(String [] header) {
     this.header = header;
     for (String key : this.header){
-      if (key.matches("\\W")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
+      if (!key.matches("\\w+")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
     }
     instance = new HashMap<String,String>();
   }
@@ -70,6 +70,9 @@ public class FieldWritable extends BinaryComparable
    * @param contents should not contain tabs
    */
   public FieldWritable(String [] headers, String [] contents){
+    instance = new HashMap<String, String>();
+    content = new Text();
+    header = null;
     set(headers, contents);
   }
   
@@ -84,9 +87,7 @@ public class FieldWritable extends BinaryComparable
    * @param split_regex Regex for splitting strings.
    */
   public FieldWritable(String header, String content, String split_regex){
-    String [] headers = header.split(split_regex);
-    String [] contents = content.split(split_regex);
-    set(headers, contents);
+    this(header.split(split_regex), content.split(split_regex));
   }
   
   /**
@@ -97,10 +98,7 @@ public class FieldWritable extends BinaryComparable
    * @param content each content field should not contain tabs.
    */
   public FieldWritable(String header, String content){
-    String split_regex = "\\t";
-    String [] headers = header.split(split_regex);
-    String [] contents = content.split(split_regex);
-    set(headers, contents);
+    this(header,content, "\\t");
   }
   
   /** Constructor helper class
@@ -169,7 +167,7 @@ public class FieldWritable extends BinaryComparable
       String h = header[i], f = fields[i];
       // we may not need to check value here?
       // maybe it's better to check it on the write side
-      if (h.matches("\\W"))
+      if (!h.matches("\\w+"))
         throw new IllegalArgumentException("FieldWritable header can contains only word characters [a-zA-Z_0-9]");
       instance.put(h, f);
     }
@@ -229,8 +227,8 @@ public class FieldWritable extends BinaryComparable
   @Override
   public String put(String key, String value) {
     // TODO, need document the behavior
-    if (key.matches("\\W")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
-    if (value.matches("\\t")) throw new IllegalArgumentException("field cannot contain tabs");
+    if (!key.matches("\\w+")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
+    //if (value.matches(".*\\t.*")) throw new IllegalArgumentException("field cannot contain tabs");
     if (value.equals("")) value = "\\N";
     if (!instance.containsKey(key)){      
       String new_header = (header == null) ? key : StringUtils.join(header, "\t") + "\t" + key;

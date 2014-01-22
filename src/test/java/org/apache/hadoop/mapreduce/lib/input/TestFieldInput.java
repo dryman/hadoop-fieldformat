@@ -27,7 +27,7 @@ import org.junit.Test;
  * Test for FieldRecordReader
  * it is basically as same as LineRecordReader
  */
-public class TestFieldRecordReader {
+public class TestFieldInput {
   private static Path workDir = new Path(new Path(System.getProperty(
       "test.build.data", "."), "data"), "TestFieldInputFormat");
   private static Path inputDir = new Path(workDir, "input");
@@ -65,7 +65,7 @@ public class TestFieldRecordReader {
   
   public void createAndRunjob(Configuration conf) throws IOException, InterruptedException, ClassNotFoundException{
     Job job = new Job(conf);
-    job.setJarByClass(TestFieldRecordReader.class);
+    job.setJarByClass(TestFieldInput.class);
     job.setMapperClass(RecordMapper.class);
     job.setNumReduceTasks(0);
     job.setInputFormatClass(FieldInputFormat.class);
