@@ -29,7 +29,7 @@ public class TestRun extends Configured implements Tool {
   @Override
   public int run(String[] args) throws Exception {
     Configuration conf = getConf();
-    conf.set("mapreduce.fieldoutput.header", "ct_audit,ct_action");
+    //conf.set("mapreduce.fieldoutput.header", "ct_audit,ct_action");
     Job job = new Job(conf);
     job.setJobName("test fieldInput");
     job.setJarByClass(TestRun.class);
