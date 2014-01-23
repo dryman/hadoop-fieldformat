@@ -21,9 +21,6 @@ package org.apache.hadoop.io;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,10 +53,18 @@ public class FieldWritable extends BinaryComparable
     content = new Text();
   }
   
+  public FieldWritable(String header) {
+    this.header = header.split("\\t");
+    for (String key : this.header){
+      if (!key.matches("\\w+")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
+    }
+    instance = new HashMap<String,String>();
+  }
+  
   public FieldWritable(String [] header) {
     this.header = header;
     for (String key : this.header){
-      if (key.matches("\\W")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
+      if (!key.matches("\\w+")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
     }
     instance = new HashMap<String,String>();
   }
@@ -70,6 +75,9 @@ public class FieldWritable extends BinaryComparable
    * @param contents should not contain tabs
    */
   public FieldWritable(String [] headers, String [] contents){
+    instance = new HashMap<String, String>();
+    content = new Text();
+    header = null;
     set(headers, contents);
   }
   
@@ -84,9 +92,7 @@ public class FieldWritable extends BinaryComparable
    * @param split_regex Regex for splitting strings.
    */
   public FieldWritable(String header, String content, String split_regex){
-    String [] headers = header.split(split_regex);
-    String [] contents = content.split(split_regex);
-    set(headers, contents);
+    this(header.split(split_regex), content.split(split_regex));
   }
   
   /**
@@ -97,10 +103,7 @@ public class FieldWritable extends BinaryComparable
    * @param content each content field should not contain tabs.
    */
   public FieldWritable(String header, String content){
-    String split_regex = "\\t";
-    String [] headers = header.split(split_regex);
-    String [] contents = content.split(split_regex);
-    set(headers, contents);
+    this(header,content, "\\t");
   }
   
   /** Constructor helper class
@@ -112,14 +115,20 @@ public class FieldWritable extends BinaryComparable
       throw new IllegalArgumentException("FieldWritable header & field lenth don't match. header: " 
          +headers.length + " content: " + contents.length );
     }
-    for (int i = 0; i< headers.length; i++)
+    for (int i = 0; i < this.header.length; i++) {
+      if (!header[i].matches("\\w+")) 
+        throw new IllegalArgumentException("header \"" + header[i] +"\" must be word characters [a-zA-Z_0-9]");
       put(headers[i], contents[i]);
-    // A lazy way to construct the class, but we'll just keep it simple first
+    }
   }
   
-  public void updateContent(Text content){
-    this.content = content; // actually this is the same Text object...
+  public void setContent(Text content){
+    this.content = content;
     String [] fields = this.content.toString().split("\\t");
+    if (header.length != fields.length) {
+      throw new IllegalArgumentException("FieldWritable header & field lenth don't match. header: " 
+         +header.length + " content: " + fields.length );
+    }
     int i;
     for (i=0; i < header.length; i++){
       instance.put(header[i], fields[i]);
@@ -169,7 +178,7 @@ public class FieldWritable extends BinaryComparable
       String h = header[i], f = fields[i];
       // we may not need to check value here?
       // maybe it's better to check it on the write side
-      if (h.matches("\\W"))
+      if (!h.matches("\\w+"))
         throw new IllegalArgumentException("FieldWritable header can contains only word characters [a-zA-Z_0-9]");
       instance.put(h, f);
     }
@@ -183,9 +192,7 @@ public class FieldWritable extends BinaryComparable
 
   @Override
   public void clear() {
-    header = null;
-    content = new Text();
-    instance.clear();
+    throw new UnsupportedOperationException("No put operation supported for unmodifiable map");
   }
 
   @Override
@@ -219,54 +226,19 @@ public class FieldWritable extends BinaryComparable
   }
 
   /**
-   * Append new header field and content field
-   * If header field exist, it will replace the old content field with
-   * new content.
-   * The field's order is as same as the insertion order
-   * @param key the new header field
-   * @param value the new content field
+   * throw new UnsupportedOperationException("No put operation supported for unmodifiable map");
    */
   @Override
   public String put(String key, String value) {
-    // TODO, need document the behavior
-    if (key.matches("\\W")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
-    if (value.matches("\\t")) throw new IllegalArgumentException("field cannot contain tabs");
-    if (value.equals("")) value = "\\N";
-    if (!instance.containsKey(key)){      
-      String new_header = (header == null) ? key : StringUtils.join(header, "\t") + "\t" + key;
-      header = new_header.split("\\t");
-      try {
-        ByteBuffer bb;
-        if (content.toString().equals("")){
-          bb = Text.encode(value);
-        }else {
-          bb = Text.encode("\t"+ value);
-        }
-        content.append(bb.array(), 0, bb.limit());
-      } catch (CharacterCodingException e) {
-        e.printStackTrace();
-      }
-    } else {
-      int i = 0;
-      for (; i < header.length && !header[i].equals(key); i++){;}
-      String [] content_arr = content.toString().split("\\t");
-      content_arr[i] = value;
-      content = new Text(StringUtils.join(content_arr, "\t"));
-    }   
-    return instance.put(key, value);
+    throw new UnsupportedOperationException("No put operation supported for unmodifiable map");
   }
 
   /**
-   * For each key-value pair, runs @{put}
-   * Since we don't know exactly what the order of the map would be,
-   * this is not a recommended way to insert fields.
+   * throw new UnsupportedOperationException("No put operation supported for unmodifiable map");
    */
   @Override
   public void putAll(Map<? extends String, ? extends String> m) {
-    // TODO, document bad behavior
-    for (Map.Entry<? extends String, ? extends String> entry : m.entrySet()){
-      put(entry.getKey(), entry.getValue());
-    } 
+    throw new UnsupportedOperationException("No put operation supported for unmodifiable map");
   }
 
   /**
@@ -274,24 +246,7 @@ public class FieldWritable extends BinaryComparable
    */
   @Override
   public String remove(Object key) {
-    // TODO: document bad behavior
-    if (instance.containsKey(key)){
-      ArrayList<String> header_lst = new ArrayList<String>(), content_lst = new ArrayList<String>();
-      for (String s : header)
-        header_lst.add(s);
-      for (String s : content.toString().split("\\t"))
-        content_lst.add(s);
-      
-      int i = 0;
-      for (; i < header.length && !header[i].equals(key); i++);
-      header_lst.remove(i);
-      content_lst.remove(i);
-      
-      header = new String[header_lst.size()];
-      header = header_lst.toArray(header);
-      content = new Text(StringUtils.join(content_lst, "\t"));
-    }
-    return instance.remove(key);
+    throw new UnsupportedOperationException("No put operation supported for unmodifiable map");
   }
 
   @Override

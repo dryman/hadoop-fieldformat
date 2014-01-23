@@ -62,7 +62,7 @@ public class FieldRecordReader extends RecordReader<LongWritable, FieldWritable>
   private CompressionCodec codec;
   private Decompressor decompressor;
   private byte[] recordDelimiterBytes = null;
-  private String [] header = null;
+  private String header = null;
 
   public FieldRecordReader() {
   }
@@ -95,8 +95,7 @@ public class FieldRecordReader extends RecordReader<LongWritable, FieldWritable>
     System.out.println("FieldReocrdReader reading header path: "+ headerPath);
     FSDataInputStream headerIn = fs.open(headerPath);
     BufferedReader br = new BufferedReader(new InputStreamReader(headerIn));
-    String line = br.readLine();
-    header = line.split("\\t");
+    header = br.readLine();
     br.close();
     
     // open the file and seek to the start of the split
@@ -189,7 +188,7 @@ public class FieldRecordReader extends RecordReader<LongWritable, FieldWritable>
     } else {
       //value.clear();
       // TODO: need to be optimized
-      value.updateContent(textValue);
+      value.setContent(textValue);
       //value.set(header, textValue.toString().split("\\t"));
       return true;
     }
