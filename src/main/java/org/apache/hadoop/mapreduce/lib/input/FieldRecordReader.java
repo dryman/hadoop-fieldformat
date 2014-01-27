@@ -29,7 +29,6 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.FieldWritable;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
@@ -83,11 +82,6 @@ public class FieldRecordReader extends LineRecordReader {
       value = null;
       return false;
     }
-  }
-
-  @Override
-  public LongWritable getCurrentKey() {
-    return super.getCurrentKey();
   }
 
   @Override
