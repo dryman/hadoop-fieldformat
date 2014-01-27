@@ -63,6 +63,7 @@ public class FieldRecordReader extends LineRecordReader {
     } else{
       headerPath = new Path(split.getPath().toString() + "/_logs/header.tsv");
     }
+    System.out.println("FieldReocrdReader reading header path: "+ headerPath);
     LOG.debug("FieldReocrdReader reading header path: "+ headerPath);
     FSDataInputStream headerIn = fs.open(headerPath);
     BufferedReader br = new BufferedReader(new InputStreamReader(headerIn));
@@ -70,8 +71,9 @@ public class FieldRecordReader extends LineRecordReader {
     br.close();
   }
 
-
+  @Override
   public boolean nextKeyValue() throws IOException {
+    System.out.println("In field record reader nextKeyValue()");
     if(super.nextKeyValue()){
       if (value == null) {
         value = new FieldWritable(header); 
