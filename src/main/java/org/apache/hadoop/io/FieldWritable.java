@@ -115,9 +115,10 @@ public class FieldWritable extends Text
       throw new IllegalArgumentException("FieldWritable header & field lenth don't match. header: " 
          +headers.length + " content: " + contents.length );
     }
+    this.header = headers;
     for (int i = 0; i < this.header.length; i++) {
-      if (!header[i].matches("\\w+")) 
-        throw new IllegalArgumentException("header \"" + header[i] +"\" must be word characters [a-zA-Z_0-9]");
+      if (!headers[i].matches("\\w+")) 
+        throw new IllegalArgumentException("header \"" + headers[i] +"\" must be word characters [a-zA-Z_0-9]");
       put(headers[i], contents[i]);
     }
   }
