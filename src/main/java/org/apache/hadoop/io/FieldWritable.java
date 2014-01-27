@@ -41,7 +41,7 @@ import org.apache.hadoop.classification.InterfaceStability;
 @Stringable
 @InterfaceAudience.Public
 @InterfaceStability.Unstable
-public class FieldWritable extends BinaryComparable
+public class FieldWritable extends Text
     implements WritableComparable<BinaryComparable>, Map<String, String>{
   
   private HashMap<String, String> instance;
