@@ -29,7 +29,6 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.FieldWritable;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
@@ -64,6 +63,7 @@ public class FieldRecordReader extends LineRecordReader {
     } else{
       headerPath = new Path(split.getPath().toString() + "/_logs/header.tsv");
     }
+    System.out.println("FieldReocrdReader reading header path: "+ headerPath);
     LOG.debug("FieldReocrdReader reading header path: "+ headerPath);
     FSDataInputStream headerIn = fs.open(headerPath);
     BufferedReader br = new BufferedReader(new InputStreamReader(headerIn));
@@ -71,7 +71,7 @@ public class FieldRecordReader extends LineRecordReader {
     br.close();
   }
 
-
+  @Override
   public boolean nextKeyValue() throws IOException {
     if(super.nextKeyValue()){
       if (value == null) {
@@ -83,11 +83,6 @@ public class FieldRecordReader extends LineRecordReader {
       value = null;
       return false;
     }
-  }
-
-  @Override
-  public LongWritable getCurrentKey() {
-    return super.getCurrentKey();
   }
 
   @Override
