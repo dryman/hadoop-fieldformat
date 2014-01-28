@@ -22,13 +22,9 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.TaskID;
 
 public class FieldOutputCommitter extends FileOutputCommitter {
   private Path outputPath = null;
@@ -54,22 +50,14 @@ public class FieldOutputCommitter extends FileOutputCommitter {
   public void commitTask(TaskAttemptContext context) 
   throws IOException {
     super.commitTask(context);
-    TaskAttemptID taid = context.getTaskAttemptID();
-    TaskID tid = taid.getTaskID();
-    System.out.println("task attempt id: " + taid);
-    System.out.println("Task id: " + tid);
-    System.out.println("id: " + tid.getId());
-  }
-  
-  @Override
-  public void commitJob(JobContext context) throws IOException{
-    Configuration conf = context.getConfiguration();
-    super.commitJob(context);
-    if (this.outputPath != null){
-      Path headerPath = new Path(new Path(this.outputPath, "_logs"), "header.tsv");
-      System.out.println("header path: "+ headerPath);
-      FileSystem fs = headerPath.getFileSystem(conf);
-      System.out.println("header is: " + header);
+    if (context.getTaskAttemptID().getTaskID().getId() == 0){
+      FileSystem fs = outputPath.getFileSystem(context.getConfiguration());
+      Path headerPath = new Path(new Path(outputPath, "_logs"), "header.tsv");
+      if (fs.exists(headerPath)){
+        if (!fs.delete(headerPath, true)){
+          throw new IOException("Could not delete " + headerPath);
+        }
+      }
       if (header != null) {
         Writer writer = new OutputStreamWriter(fs.create(headerPath));
         writer.write(header);
@@ -77,4 +65,21 @@ public class FieldOutputCommitter extends FileOutputCommitter {
       }
     }
   }
+  
+//  @Override
+//  public void commitJob(JobContext context) throws IOException{
+//    Configuration conf = context.getConfiguration();
+//    super.commitJob(context);
+//    if (this.outputPath != null){
+//      Path headerPath = new Path(new Path(this.outputPath, "_logs"), "header.tsv");
+//      System.out.println("header path: "+ headerPath);
+//      FileSystem fs = headerPath.getFileSystem(conf);
+//      System.out.println("header is: " + header);
+//      if (header != null) {
+//        Writer writer = new OutputStreamWriter(fs.create(headerPath));
+//        writer.write(header);
+//        writer.close();
+//      }
+//    }
+//  }
 }
