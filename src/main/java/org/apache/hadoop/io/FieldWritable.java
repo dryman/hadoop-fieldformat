@@ -116,10 +116,11 @@ public class FieldWritable extends Text
          +headers.length + " content: " + contents.length );
     }
     this.header = headers;
+    this.content = new Text(StringUtils.join(contents, "\t"));
     for (int i = 0; i < this.header.length; i++) {
       if (!headers[i].matches("\\w+")) 
         throw new IllegalArgumentException("header \"" + headers[i] +"\" must be word characters [a-zA-Z_0-9]");
-      put(headers[i], contents[i]);
+      instance.put(headers[i], contents[i]);
     }
   }
   

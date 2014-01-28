@@ -36,20 +36,20 @@ public class TestRun extends Configured implements Tool {
     job.setJarByClass(TestRun.class);
     MultipleInputs.addInputPath(job, new Path(args[0]), FieldInputFormat.class, CTMapper.class);
     job.setNumReduceTasks(0);
-    FileOutputFormat.setOutputPath(job, new Path(args[1]));
-    //FieldOutputFormat.setOutputPath(job, new Path(args[1]));
-    //job.setOutputFormatClass(FieldOutputFormat.class);
+    //FileOutputFormat.setOutputPath(job, new Path(args[1]));
+    FieldOutputFormat.setOutputPath(job, new Path(args[1]));
+    job.setOutputFormatClass(FieldOutputFormat.class);
     job.submit();
     job.waitForCompletion(true);
     return 0;
   }
 
-  public static class CTMapper extends Mapper<LongWritable, FieldWritable, Text, NullWritable>{
+  public static class CTMapper extends Mapper<LongWritable, FieldWritable, FieldWritable, NullWritable>{
     public void map(LongWritable key, FieldWritable map, Context context) throws IOException, InterruptedException{
       String out = map.get("ct_audit") + "\t" + map.get("ct_action");
 //      String fields[] = map.toString().split("\\t");
 //      String out = fields[0] + "\t" + fields[2];
-      context.write(new Text(out), NullWritable.get());
+      context.write(new FieldWritable("ct_audit\tct_action", out), NullWritable.get());
     }
   }
 }

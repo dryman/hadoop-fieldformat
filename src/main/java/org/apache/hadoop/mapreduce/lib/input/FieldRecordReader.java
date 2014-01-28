@@ -73,7 +73,6 @@ public class FieldRecordReader extends LineRecordReader {
 
   @Override
   public boolean nextKeyValue() throws IOException {
-    System.out.println("In field record reader nextKeyValue()");
     if(super.nextKeyValue()){
       if (value == null) {
         value = new FieldWritable(header); 

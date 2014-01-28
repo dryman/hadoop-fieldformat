@@ -27,6 +27,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.TaskID;
 
 public class FieldOutputCommitter extends FileOutputCommitter {
   private Path outputPath = null;
@@ -52,7 +54,11 @@ public class FieldOutputCommitter extends FileOutputCommitter {
   public void commitTask(TaskAttemptContext context) 
   throws IOException {
     super.commitTask(context);
-    System.out.println("task attempt id: " + context.getTaskAttemptID());
+    TaskAttemptID taid = context.getTaskAttemptID();
+    TaskID tid = taid.getTaskID();
+    System.out.println("task attempt id: " + taid);
+    System.out.println("Task id: " + tid);
+    System.out.println("id: " + tid.getId());
   }
   
   @Override
