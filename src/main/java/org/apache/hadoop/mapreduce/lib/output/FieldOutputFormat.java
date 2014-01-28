@@ -47,6 +47,7 @@ public class FieldOutputFormat extends TextOutputFormat<FieldWritable, NullWrita
   private FieldOutputCommitter committer = null;
   protected static class FieldRecordWriter extends TextOutputFormat.LineRecordWriter<FieldWritable, NullWritable>{
     private FieldOutputFormat fof;
+    private int task_id = -1;
     //private boolean isHeaderSet = false;
     private static final String utf8 = "UTF-8";
     private static final byte[] newline;
@@ -57,18 +58,21 @@ public class FieldOutputFormat extends TextOutputFormat<FieldWritable, NullWrita
         throw new IllegalArgumentException("can't find " + utf8 + " encoding");
       }
     }
-    public FieldRecordWriter(DataOutputStream out, FieldOutputFormat fof) {
+    public FieldRecordWriter(DataOutputStream out, FieldOutputFormat fof, int id) {
       super(out);
       this.fof = fof;
+      this.task_id = id;
     }
     
     public synchronized void write(FieldWritable key, NullWritable value)
         throws IOException {
+      
+      if (task_id == 0){
         if (fof.committer != null && fof.committer.getHeader() == null){
           System.out.println("setting header in writer");
           fof.committer.setHeader(StringUtils.join(key.getHeader(), "\t"));            
         }
-
+      }
 
         out.write(key.getBytes(), 0, key.getLength());
         out.write(newline);
@@ -92,12 +96,12 @@ public class FieldOutputFormat extends TextOutputFormat<FieldWritable, NullWrita
 
     if (!isCompressed) {
       FSDataOutputStream fileOut = fs.create(file, false);
-      return new FieldRecordWriter(fileOut, this);
+      return new FieldRecordWriter(fileOut, this, job.getTaskAttemptID().getTaskID().getId());
     } else {
       FSDataOutputStream fileOut = fs.create(file, false);
       return new FieldRecordWriter(new DataOutputStream
                                         (codec.createOutputStream(fileOut)),
-                                         this);
+                                         this, job.getTaskAttemptID().getTaskID().getId());
     }
   }
   
