@@ -45,15 +45,14 @@ public class FieldWritable extends Text
     implements WritableComparable<BinaryComparable>, Map<String, String>{
   
   private HashMap<String, String> instance;
-  private Text content;
   private String [] header;  
   
   public FieldWritable() {
     instance = new HashMap<String, String>();
-    content = new Text();
   }
   
   public FieldWritable(String header) {
+    super();
     this.header = header.split("\\t");
     for (String key : this.header){
       if (!key.matches("\\w+")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
@@ -62,6 +61,7 @@ public class FieldWritable extends Text
   }
   
   public FieldWritable(String [] header) {
+    super();
     this.header = header;
     for (String key : this.header){
       if (!key.matches("\\w+")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
@@ -75,10 +75,51 @@ public class FieldWritable extends Text
    * @param contents should not contain tabs
    */
   public FieldWritable(String [] headers, String [] contents){
+    super();
     instance = new HashMap<String, String>();
-    content = new Text();
     header = null;
-    set(headers, contents);
+    if (headers.length != contents.length) {
+      throw new IllegalArgumentException("FieldWritable header & field lenth don't match. header: " 
+         +headers.length + " content: " + contents.length );
+    }
+    this.header = headers;
+    super.set(StringUtils.join(contents, "\t"));
+    for (int i = 0; i < this.header.length; i++) {
+      if (!headers[i].matches("\\w+")) 
+        throw new IllegalArgumentException("header \"" + headers[i] +"\" must be word characters [a-zA-Z_0-9]");
+      instance.put(headers[i], contents[i]);
+    }
+  }
+  
+  public void set(String [] contents){
+    if (header.length != contents.length) {
+      throw new IllegalArgumentException("FieldWritable header & field lenth don't match. header: " 
+         +header.length + " content: " + contents.length );
+    }
+    for (int i = 0; i < this.header.length; i++) {
+      if (!header[i].matches("\\w+")) 
+        throw new IllegalArgumentException("header \"" + header[i] +"\" must be word characters [a-zA-Z_0-9]");
+      instance.put(header[i], contents[i]);
+    }
+  }
+  
+  @Override
+  public void set(String content){
+    set(content.split("\\t"));
+    super.set(content);
+  }
+  
+  @Override
+  public void set(byte[] utf8){
+    Text txt = new Text(utf8);
+    set(txt.toString().split("\\t"));
+    super.set(utf8);
+  }
+  
+  @Override
+  public void set(Text txt){
+    set(txt.toString().split("\\t"));
+    super.set(txt);
   }
   
   /**
@@ -110,50 +151,6 @@ public class FieldWritable extends Text
    * @param headers
    * @param contents
    */
-  public void set(String [] headers, String [] contents){
-    if (headers.length != contents.length) {
-      throw new IllegalArgumentException("FieldWritable header & field lenth don't match. header: " 
-         +headers.length + " content: " + contents.length );
-    }
-    this.header = headers;
-    this.content = new Text(StringUtils.join(contents, "\t"));
-    for (int i = 0; i < this.header.length; i++) {
-      if (!headers[i].matches("\\w+")) 
-        throw new IllegalArgumentException("header \"" + headers[i] +"\" must be word characters [a-zA-Z_0-9]");
-      instance.put(headers[i], contents[i]);
-    }
-  }
-  
-  public void setContent(Text content){
-    this.content = content;
-    String [] fields = this.content.toString().split("\\t");
-    if (header.length != fields.length) {
-      throw new IllegalArgumentException("FieldWritable header & field lenth don't match. header: " 
-         +header.length + " content: " + fields.length );
-    }
-    int i;
-    for (i=0; i < header.length; i++){
-      instance.put(header[i], fields[i]);
-    }
-  }
-  
-  /**
-   * Get the copy of content field's byte. Used by fast compareTo method
-   * in {@link org.apache.hadoop.io.BinaryComparable#getBytes}
-   */
-  @Override
-  public byte[] getBytes() {
-    return content.getBytes();
-  }
-
-  /**
-   * Get the copy of content field's length. Used by fast compareTo method
-   * in {@link org.apache.hadoop.io.BinaryComparable#getLength}
-   */
-  @Override
-  public int getLength() {
-    return content.getLength();
-  }
   
   /**
    * Get a copy of the header string array
@@ -162,24 +159,15 @@ public class FieldWritable extends Text
     return header.clone();
   }
   
-  /**
-   * Return the content fields (without header)
-   */
-  @Override
-  public String toString(){
-    return content.toString();
-  }
 
   @Override
   public void readFields(DataInput in) throws IOException {
     header = Text.readString(in).split("\\t");
-    content.readFields(in);
-    String [] fields = content.toString().split("\\t");
+    super.readFields(in);
+    String [] fields = this.toString().split("\\t");
     if (fields.length != header.length) throw new IllegalArgumentException("FieldWritable header & field lenth don't match");
     for (int i = 0; i < header.length; i++){
       String h = header[i], f = fields[i];
-      // we may not need to check value here?
-      // maybe it's better to check it on the write side
       if (!h.matches("\\w+"))
         throw new IllegalArgumentException("FieldWritable header can contains only word characters [a-zA-Z_0-9]");
       instance.put(h, f);
@@ -189,7 +177,7 @@ public class FieldWritable extends Text
   @Override
   public void write(DataOutput out) throws IOException {
     Text.writeString(out, StringUtils.join(header, "\t"));
-    content.write(out);
+    super.write(out);
   }
 
   @Override

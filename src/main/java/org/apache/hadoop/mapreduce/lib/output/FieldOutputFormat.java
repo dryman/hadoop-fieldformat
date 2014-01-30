@@ -48,7 +48,6 @@ public class FieldOutputFormat extends TextOutputFormat<FieldWritable, NullWrita
   protected static class FieldRecordWriter extends TextOutputFormat.LineRecordWriter<FieldWritable, NullWritable>{
     private FieldOutputFormat fof;
     private int task_id = -1;
-    //private boolean isHeaderSet = false;
     private static final String utf8 = "UTF-8";
     private static final byte[] newline;
     static {
@@ -111,7 +110,6 @@ public class FieldOutputFormat extends TextOutputFormat<FieldWritable, NullWrita
     System.out.println("get field output committer");
     if (committer == null) {
       Path output = getOutputPath(context);
-      // maybe setup a delegate to this class (which contains record writer)?
       committer = new FieldOutputCommitter(output, context);
     }
     return committer;

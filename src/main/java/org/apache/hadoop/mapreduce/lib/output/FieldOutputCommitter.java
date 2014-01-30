@@ -28,7 +28,6 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
 public class FieldOutputCommitter extends FileOutputCommitter {
   private Path outputPath = null;
-  public static String FIELD_HEADER = "mapreduce.fieldoutput.header";
   private String header;
   
   public String getHeader() {
@@ -65,21 +64,4 @@ public class FieldOutputCommitter extends FileOutputCommitter {
       }
     }
   }
-  
-//  @Override
-//  public void commitJob(JobContext context) throws IOException{
-//    Configuration conf = context.getConfiguration();
-//    super.commitJob(context);
-//    if (this.outputPath != null){
-//      Path headerPath = new Path(new Path(this.outputPath, "_logs"), "header.tsv");
-//      System.out.println("header path: "+ headerPath);
-//      FileSystem fs = headerPath.getFileSystem(conf);
-//      System.out.println("header is: " + header);
-//      if (header != null) {
-//        Writer writer = new OutputStreamWriter(fs.create(headerPath));
-//        writer.write(header);
-//        writer.close();
-//      }
-//    }
-//  }
 }

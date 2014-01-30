@@ -77,7 +77,7 @@ public class FieldRecordReader extends LineRecordReader {
       if (value == null) {
         value = new FieldWritable(header); 
       }
-      value.setContent(super.getCurrentValue());
+      value.set(super.getCurrentValue());
       return true;
     } else {
       value = null;
