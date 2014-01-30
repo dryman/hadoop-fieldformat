@@ -92,6 +92,10 @@ public class FieldWritable extends Text
   }
   
   public void set(String [] contents){
+    if (header.length != contents.length) {
+      throw new IllegalArgumentException("FieldWritable header & field lenth don't match. header: " 
+         +header.length + " content: " + contents.length );
+    }
     for (int i = 0; i < this.header.length; i++) {
       if (!header[i].matches("\\w+")) 
         throw new IllegalArgumentException("header \"" + header[i] +"\" must be word characters [a-zA-Z_0-9]");

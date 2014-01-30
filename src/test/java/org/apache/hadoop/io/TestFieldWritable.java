@@ -31,8 +31,7 @@ public class TestFieldWritable {
   @Test
   public void testConstructorCheck1() {
     try {
-      FieldWritable f = new FieldWritable("abc", "def\tghi");
-      System.out.println(f);
+      new FieldWritable("abc", "def\tghi");
       fail("header and content field count should be the same");
     }catch(Exception e) {}
     assert(true);
@@ -41,8 +40,7 @@ public class TestFieldWritable {
   @Test
   public void testConstructorCheck2() {
     try {
-      FieldWritable f = new FieldWritable("abc.", "def");
-      System.out.println(f);
+      new FieldWritable("abc.", "def");
       fail("header should not contain non word character");
     }catch(Exception e) {}
     assert(true);
@@ -56,6 +54,15 @@ public class TestFieldWritable {
     assertEquals(f.get("col1"), "abc");
     assertEquals(f.get("col2"), "def");
     
+  }
+  
+  @Test
+  public void testHeaderConstructorCount(){
+    FieldWritable f = new FieldWritable("col1\tcol2");
+    try {
+      f.set("abc\tdef\tghi");
+      fail("when there's different col count in header and content, should fail");
+    } catch(Exception e){}
   }
   // TODO: need to write more test cases
   // like insert, ordering, toString...etc.
