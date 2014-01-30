@@ -29,7 +29,7 @@ import org.junit.Test;
 public class TestFieldWritable {
 
   @Test
-  public void testConstructor1() {
+  public void testConstructorCheck1() {
     try {
       FieldWritable f = new FieldWritable("abc", "def\tghi");
       System.out.println(f);
@@ -39,7 +39,7 @@ public class TestFieldWritable {
   }
   
   @Test
-  public void testConstructor2() {
+  public void testConstructorCheck2() {
     try {
       FieldWritable f = new FieldWritable("abc.", "def");
       System.out.println(f);
@@ -48,6 +48,15 @@ public class TestFieldWritable {
     assert(true);
   }
 
+  @Test
+  public void testHeaderConstructor(){
+    FieldWritable f = new FieldWritable("col1\tcol2");
+    f.set("abc\tdef");
+    assertArrayEquals(f.getHeader(), new String[]{"col1", "col2"});
+    assertEquals(f.get("col1"), "abc");
+    assertEquals(f.get("col2"), "def");
+    
+  }
   // TODO: need to write more test cases
   // like insert, ordering, toString...etc.
 }
