@@ -35,7 +35,7 @@ public class FieldOutputCommitter extends FileOutputCommitter {
   }
 
   public void setHeader(String header) {
-    System.out.println("setting header");
+    System.out.println("setting header: " + header);
     this.header = header;
   }
 
@@ -51,7 +51,13 @@ public class FieldOutputCommitter extends FileOutputCommitter {
     super.commitTask(context);
     if (context.getTaskAttemptID().getTaskID().getId() == 0){
       FileSystem fs = outputPath.getFileSystem(context.getConfiguration());
-      Path headerPath = new Path(new Path(outputPath, "_logs"), "header.tsv");
+      Path logPath = new Path(outputPath, "_logs");
+      Path headerPath = new Path(logPath, "header.tsv");
+      
+      if (!fs.exists(logPath)){
+        fs.mkdirs(logPath);
+      }
+      
       if (fs.exists(headerPath)){
         if (!fs.delete(headerPath, true)){
           throw new IOException("Could not delete " + headerPath);

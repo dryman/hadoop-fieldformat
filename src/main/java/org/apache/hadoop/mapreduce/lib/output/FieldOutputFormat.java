@@ -107,7 +107,6 @@ public class FieldOutputFormat extends TextOutputFormat<FieldWritable, NullWrita
   @Override
   public synchronized 
   OutputCommitter getOutputCommitter(TaskAttemptContext context) throws IOException {
-    System.out.println("get field output committer");
     if (committer == null) {
       Path output = getOutputPath(context);
       committer = new FieldOutputCommitter(output, context);

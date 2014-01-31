@@ -91,6 +91,32 @@ public class FieldWritable extends Text
     }
   }
   
+  /**
+   * Construct fields with header string and content string.
+   * String will be split to fields by split_regex
+   * @param header should only contain word characters [a-zA-Z_0-9],
+   * so that it can be easily processed by downstream programs.
+   * @param content each content field should not contain tabs.
+   * Tabs are used for separation for internal use. Even if you use comma
+   * separation, you cannot contain tab in each field.
+   * @param split_regex Regex for splitting strings.
+   */
+  public FieldWritable(String header, String content, String split_regex){
+    this(header.split(split_regex), content.split(split_regex));
+  }
+  
+  /**
+   * Construct fields with header string and content string.
+   * String will be split to fields by tabs
+   * @param header should only contain word characters [a-zA-Z_0-9],
+   * so that it can be easily processed by downstream programs.
+   * @param content each content field should not contain tabs.
+   */
+  public FieldWritable(String header, String content){
+    this(header,content, "\\t");
+  }
+  
+  
   public void set(String [] contents){
     if (header.length != contents.length) {
       throw new IllegalArgumentException("FieldWritable header & field lenth don't match. header: " 
@@ -122,35 +148,6 @@ public class FieldWritable extends Text
     super.set(txt);
   }
   
-  /**
-   * Construct fields with header string and content string.
-   * String will be split to fields by split_regex
-   * @param header should only contain word characters [a-zA-Z_0-9],
-   * so that it can be easily processed by downstream programs.
-   * @param content each content field should not contain tabs.
-   * Tabs are used for separation for internal use. Even if you use comma
-   * separation, you cannot contain tab in each field.
-   * @param split_regex Regex for splitting strings.
-   */
-  public FieldWritable(String header, String content, String split_regex){
-    this(header.split(split_regex), content.split(split_regex));
-  }
-  
-  /**
-   * Construct fields with header string and content string.
-   * String will be split to fields by tabs
-   * @param header should only contain word characters [a-zA-Z_0-9],
-   * so that it can be easily processed by downstream programs.
-   * @param content each content field should not contain tabs.
-   */
-  public FieldWritable(String header, String content){
-    this(header,content, "\\t");
-  }
-  
-  /** Constructor helper class
-   * @param headers
-   * @param contents
-   */
   
   /**
    * Get a copy of the header string array

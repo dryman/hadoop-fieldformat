@@ -20,12 +20,11 @@ package org.apache.hadoop.io;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+
 import org.junit.Test;
 
-/**
- * 
- *
- */
+
 public class TestFieldWritable {
 
   @Test
@@ -64,6 +63,31 @@ public class TestFieldWritable {
       fail("when there's different col count in header and content, should fail");
     } catch(Exception e){}
   }
-  // TODO: need to write more test cases
-  // like insert, ordering, toString...etc.
+  
+  @Test
+  public void testEmptyContent(){
+    FieldWritable f = new FieldWritable("col1\tcol2");
+    try {
+      f.set("\t");
+      fail("content that is empty should behave weird");
+    } catch(Exception e){}
+  }
+  
+  @Test
+  public void testIO() throws IOException{
+    DataOutputBuffer out = new DataOutputBuffer();
+    DataInputBuffer in = new DataInputBuffer();
+    
+    out.reset();
+    FieldWritable before = new FieldWritable("col1\tcol2");
+    before.set("abc\tdef");
+    before.write(out);
+    
+    in.reset(out.getData(), out.getLength());
+    FieldWritable after = new FieldWritable();
+    after.readFields(in);
+    assertTrue(before.equals(after));
+  }
+  
+
 }

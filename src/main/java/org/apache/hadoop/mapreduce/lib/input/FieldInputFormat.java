@@ -38,7 +38,9 @@ public class FieldInputFormat extends FileInputFormat <LongWritable, FieldWritab
    * @see org.apache.hadoop.mapreduce.InputFormat#createRecordReader(org.apache.hadoop.mapreduce.InputSplit, org.apache.hadoop.mapreduce.TaskAttemptContext)
    * Hide generic information to cheat java compiler
    */
+  
   @Override
+  @SuppressWarnings({"unchecked", "rawtypes"})
   public RecordReader createRecordReader(InputSplit split,
       TaskAttemptContext context) throws IOException, InterruptedException {
     String delimiter = context.getConfiguration().get(
