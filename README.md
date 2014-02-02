@@ -1,10 +1,7 @@
-hadoop-fieldformat
+hadoop-fieldformat (beta)
 ==================
 
 Structured input, output, and writable classes for map-reduce
-
-Status: Beta
-------------
 
 RATIONALE
 ---------
