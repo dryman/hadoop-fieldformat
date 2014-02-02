@@ -1,66 +1,90 @@
 hadoop-fieldformat
 ==================
 
-Semi SQL-dump compatible input, output, and writable classes for map-reduce.
+Structured input, output, and writable classes for map-reduce
 
-Status: experimental
---------------------
+Status: Beta
+------------
 
-DONE
-----
+RATIONALE
+---------
 
-0. `FieldWritable` Working implementation with tests. It captures failure aggresively, but the performance need to be enhanced.
-1. `FieldInputFormat` Ok implementation but not tests yet.
-2. `FieldRecordReader` Same as above.
-3. Follow maven diretory structure
-4. Optimize FieldWritable construction (now it's 6 times slower than Text)
-  * It's now as fast as Text, but there's no possible error check
-  * The class interface is vague and confusing. Need to find some way to fix it
-5. FieldOutputFormat, FieldOutputCommitter is working now; need to write tests.
+Hadoop is build to process semi-structured data; however, in many uses cases we found we still need the data to be more *structured*, such as querying data, ETL, doing data science, etc. Many popular hadoop tools propose different solutions: [Pig][pig] and [Cascading][cascading] uses runtime schema layout to determine fields; Hive uses external MySQL database to save header meta information. In contrast, this project is trying another approach: make the Map-Reduce API be able to process the fields without using external source. Header information is attached into the data itself, and the field mapping can be read/write by mappers and reducers. It is done by rewriting `TextInputFormat` and `TextOutputFormat` classes, so you don't need to change any of your Map-Reduce code, just needt to use different input/output classes and it's done. Currently it is only available to raw Map-Reduce API, but it shouldn't be difficult to integrate into other batch processing tools like [Hive][hive], [Pig][pig], and [Cascading][cascading].
 
-TODOS
------
+[hive]: http://hive.apache.org
+[pig]: https://pig.apache.org
+[cascading]: http://www.cascading.org
 
-1. Rationale
-2. Make `FieldWritable` interface cleaner and safer to use.
-4. Tests for FieldInputFormat, FieldRecordReader
-6. Test against MR1, MR2 apis
-7. Setting tests on MiniDFSCluster
-8. Option to use strict DB dump format (default to false)
+SYNOPSIS
+--------
 
-`FieldInputFormat` class reads the meta-data from /_logs/header.tsv, and turn the Text object into a Map instead of plain
-text representation. Also, `FieldOutputFormat` will insert the header information into the /_logs/header.tsv after
-map-reduce program succeed.
+Before you use the classes, you'll need to know how header is stored in HDFS. The trick is, store the `header.tsv` in `<source directory>/_logs/header.tsv`. When running Map-Reduce jobs, anything that is in `_logs` won't be read, thus it is compatible to other map-reduce ecosystem.
 
-Example program:
+### Reading fields in Mapper
+
+To use this library, just setup `job.setInputFormatClass(FieldInputFormat.class)` instead of the default `TextInputFormat.class`. 
 
 ```java
 
 public int run (String[] args) throws Exception {
   Job job = new Job(getConf());
 
+  FileInputFormat.addInputPaths(job, args[0]);
   job.setInputFormatClass(FieldInputFormat.class);
   job.setMapperClass(ExampleMapper.class);
-  job.setOutputKeyClass(FieldWritable.class);
-  job.setOutputValueClass(NullWritable.class);
-  job.setOutputFormatClass(FieldOutputFormat.class);
-  job.setNumReduceTasks(0);
+  job.setNumReduceTasks(0)
+  FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
   job.submit();
 }
 
-public static class ExampleMapper extends Mapper<LongWritable, FieldWritable, FieldWritable, NullWritable> {
+public static class ExampleMapper extends Mapper<LongWritable, FieldWritable, Text, NullWritable> {
 
   public void map (LongWritable key, FieldWritable fields, Context context) throws IOException, InterruptedException{
     String ip = fields.get("ip");
     String user_agent = fields.get("user_agent");
     String cookie = fields.get("cookie");
 
+    context.write(new Text(ip+"\t"+user_agent+"\t"+cookie), NullWritable.get());
+  }
+}
+```
+
+If you use wildcard characters in your path. `FieldInputFormat` will read different headers in different paths.
+
+
+### Write header information to output
+
+Output is as simple as input, just specify the output format class to be `FieldOutputFormat.class`.
+
+```java
+    job.setOutputFormatClass(FieldOutputFormat.class);
+
     String [] header = {"ip", "user_agent", "cookie"};
     String [] body = {ip, user_agent, cookie};
     FieldWritable new_fields = new FieldWritable(header, body);
 
     context.write(new_fields, NullWritable.get());
-  }
-}
 ```
+
+
+
+ADVANTAGES
+----------
+
+1. Useful for long-term aggregation, because map-reduce jobs only need to use string to refer the field, not by column numbers (which may change by time).
+2. Gives more semantic on data level.
+
+TODOS
+-----
+
+1. Test on YARN environment
+2. Setup TravisCI or Jenkins-CI
+3. Integrate into other hadoop tools
+
+LICENSE
+-------
+
+Copyright (c) 2014 Felix Chern
+
+Distributed under the Apache License Version 2.0
