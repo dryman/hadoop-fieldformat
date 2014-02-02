@@ -64,7 +64,31 @@ Output is as simple as input, just specify the output format class to be `FieldO
     context.write(new_fields, NullWritable.get());
 ```
 
+INSTALL
+-------
 
+Hadoop-FieldFormat uses maven for dependency management. To use it in your project, add the following to your `pom.xml` file.
+
+```xml
+  <repositories>
+    <repository>
+        <id>hadoop-fieldformat-mvn-repo</id>
+        <url>https://raw.github.com/dryman/hadoop-fieldformat/mvn-repo/</url>
+        <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+        </snapshots>
+    </repository>
+  </repositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.hadoop-contrib</groupId>
+      <artifactId>hadoop-fieldformat</artifactId>
+      <version>0.3.2/version>
+    </dependency>
+  </dependencies>
+```
 
 ADVANTAGES
 ----------
