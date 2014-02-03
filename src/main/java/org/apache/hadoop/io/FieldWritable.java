@@ -176,6 +176,18 @@ public class FieldWritable extends Text
     Text.writeString(out, StringUtils.join(header, "\t"));
     super.write(out);
   }
+  
+  @Override 
+  public boolean equals(Object o){
+    if (o instanceof FieldWritable)
+      return super.equals(o);
+    return false;
+  }
+  
+  @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
 
   @Override
   public void clear() {
