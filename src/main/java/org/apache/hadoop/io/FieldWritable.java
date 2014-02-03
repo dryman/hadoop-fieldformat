@@ -69,7 +69,8 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
   }
   
   public FieldWritable(FieldWritable old){
-    super(old.toString());
+    super();
+    super.set(old.getBytes(), 0, old.getLength());
     this.header = old.header;
   }
   
