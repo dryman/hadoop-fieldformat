@@ -89,5 +89,13 @@ public class TestFieldWritable {
     assertTrue(before.equals(after));
   }
   
+  @Test
+  public void testEquals() {
+    FieldWritable a = new FieldWritable("abc", "def");
+    FieldWritable b = new FieldWritable("abc", "def");
+    assertEquals(b, a);
+    assertEquals(0, a.compareTo(b));
+  }
+  
 
 }
