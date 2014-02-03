@@ -41,8 +41,7 @@ import org.apache.hadoop.classification.InterfaceStability;
 @Stringable
 @InterfaceAudience.Public
 @InterfaceStability.Unstable
-public class FieldWritable extends Text
-    implements Map<String, String>{
+public class FieldWritable extends Text implements Map<String, String>, Cloneable{
   
   private HashMap<String, String> instance;
   private String [] header;  
@@ -67,6 +66,15 @@ public class FieldWritable extends Text
       if (!key.matches("\\w+")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
     }
     instance = new HashMap<String,String>();
+  }
+  
+  public FieldWritable(FieldWritable old){
+    super(old.toString());
+    this.header = old.header;
+  }
+  
+  public FieldWritable clone(){
+    return new FieldWritable(this);
   }
   
   /** Construct fields from two String arrays
