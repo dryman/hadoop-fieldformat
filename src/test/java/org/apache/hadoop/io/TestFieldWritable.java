@@ -96,6 +96,12 @@ public class TestFieldWritable {
     assertEquals(b, a);
     assertEquals(0, a.compareTo(b));
   }
-  
+
+  @Test
+  public void testClone() {
+    FieldWritable a = new FieldWritable("abc", "def");
+    FieldWritable b = a.clone();
+    assertEquals(b, a);
+  }
 
 }
