@@ -73,6 +73,7 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
     super.set(old.getBytes(), 0, old.getLength());
     this.header = old.header;
     String [] contents = this.toString().split("\\t");
+    instance = new HashMap<String,String>();
     for (int i = 0; i < this.header.length; i++) {
       instance.put(header[i], contents[i]);
     }
