@@ -74,7 +74,7 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
     instance = new HashMap<String,String>();
     this.header = old.header;
     if (header != null && this.getLength() > 0){
-      String [] contents = this.toString().split("\\t");
+      String [] contents = super.toString().split("\\t");
       for (int i = 0; i < this.header.length; i++) {
         instance.put(header[i], contents[i]);
       }
@@ -196,8 +196,9 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
   public void readFields(DataInput in) throws IOException {
     header = Text.readString(in).split("\\t");
     super.readFields(in);
-    String [] fields = this.toString().split("\\t");
-    if (fields.length != header.length) throw new IllegalArgumentException("FieldWritable header & field lenth don't match");
+    String [] fields = super.toString().split("\\t");
+    if (fields.length != header.length) throw new IllegalArgumentException("FieldWritable header & field lenth don't match header: " 
+         + header.length + " content: " + fields.length);
     for (int i = 0; i < header.length; i++){
       String h = header[i], f = fields[i];
       if (!h.matches("\\w+"))
@@ -210,6 +211,11 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
   public void write(DataOutput out) throws IOException {
     Text.writeString(out, StringUtils.join(header, "\t"));
     super.write(out);
+  }
+  
+  @Override
+  public String toString(){
+    return super.toString();
   }
   
   @Override 

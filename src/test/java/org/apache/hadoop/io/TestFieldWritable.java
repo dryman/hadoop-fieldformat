@@ -119,4 +119,9 @@ public class TestFieldWritable {
     assertEquals(f, c);
   }
 
+  @Test
+  public void testToString(){
+    FieldWritable f = new FieldWritable("abc", "def");
+    assertEquals("def", f.toString());
+  }
 }
