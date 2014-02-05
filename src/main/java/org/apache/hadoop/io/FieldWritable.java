@@ -198,7 +198,7 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
     super.readFields(in);
     String [] fields = super.toString().split("\\t");
     if (fields.length != header.length) throw new IllegalArgumentException("FieldWritable header & field lenth don't match header: " 
-         + header.length + " content: " + fields.length);
+         + header.length + " content: " + fields.length + "\ncontent: "+super.toString());
     for (int i = 0; i < header.length; i++){
       String h = header[i], f = fields[i];
       if (!h.matches("\\w+"))
@@ -209,7 +209,10 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
 
   @Override
   public void write(DataOutput out) throws IOException {
-    Text.writeString(out, StringUtils.join(header, "\t"));
+    String h = StringUtils.join(header, "\t");
+    Text.writeString(out, h);
+    if (getLength()==0 && header!=null)
+      throw new IllegalArgumentException("Writing empty content with header: "+ h);
     super.write(out);
   }
   

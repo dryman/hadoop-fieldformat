@@ -85,7 +85,7 @@ Hadoop-FieldFormat uses maven for dependency management. To use it in your proje
     <dependency>
       <groupId>org.apache.hadoop-contrib</groupId>
       <artifactId>hadoop-fieldformat</artifactId>
-      <version>0.3.10</version>
+      <version>0.3.11</version>
     </dependency>
   </dependencies>
 ```

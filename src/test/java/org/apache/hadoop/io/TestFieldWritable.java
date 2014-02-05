@@ -74,6 +74,17 @@ public class TestFieldWritable {
   }
   
   @Test
+  public void testEmptyContentIO(){
+    FieldWritable f = new FieldWritable("col1\tcol2");
+    DataOutputBuffer out = new DataOutputBuffer();
+    out.reset();
+    try {
+      f.write(out);
+      fail("should fail when writing empty content");
+    } catch(Exception e){}
+  }
+  
+  @Test
   public void testIO() throws IOException{
     DataOutputBuffer out = new DataOutputBuffer();
     DataInputBuffer in = new DataInputBuffer();
@@ -124,4 +135,6 @@ public class TestFieldWritable {
     FieldWritable f = new FieldWritable("abc", "def");
     assertEquals("def", f.toString());
   }
+  
+
 }
