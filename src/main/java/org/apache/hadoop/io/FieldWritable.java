@@ -83,6 +83,25 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
     return new FieldWritable(this);
   }
   
+  /** A WritableComparator optimized for Text keys. */
+  public static class FieldComparator extends WritableComparator {
+    public FieldComparator() {
+      super(FieldWritable.class);
+    }
+
+    public int compare(byte[] b1, int s1, int l1,
+                       byte[] b2, int s2, int l2) {
+      int n1 = WritableUtils.decodeVIntSize(b1[s1]);
+      int n2 = WritableUtils.decodeVIntSize(b2[s2]);
+      return compareBytes(b1, s1+n1, l1-n1, b2, s2+n2, l2-n2);
+    }
+  }
+  
+  static {
+    // register this comparator
+    WritableComparator.define(FieldWritable.class, new FieldComparator());
+  }
+  
   /** Construct fields from two String arrays
    * @param headers should only contain word characters [a-zA-Z_0-9], 
    * so that it can be easily processed by downstream programs.
