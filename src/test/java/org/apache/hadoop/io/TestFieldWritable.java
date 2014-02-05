@@ -111,5 +111,12 @@ public class TestFieldWritable {
     int cmp = a.compareTo(b);
     assertEquals(0, cmp);
   }
+  
+  @Test
+  public void testEmptyClone() {
+    FieldWritable f = new FieldWritable();
+    FieldWritable c = f.clone();
+    assertEquals(f, c);
+  }
 
 }
