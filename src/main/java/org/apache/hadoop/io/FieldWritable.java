@@ -162,25 +162,27 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
         throw new IllegalArgumentException("header \"" + header[i] +"\" must be word characters [a-zA-Z_0-9]");
       instance.put(header[i], contents[i]);
     }
+    super.set(StringUtils.join(contents, "\t"));
   }
   
   @Override
   public void set(String content){
     set(content.split("\\t"));
-    super.set(content);
   }
   
   @Override
   public void set(byte[] utf8){
     Text txt = new Text(utf8);
     set(txt.toString().split("\\t"));
-    super.set(utf8);
   }
   
   @Override
   public void set(Text txt){
     set(txt.toString().split("\\t"));
-    super.set(txt);
+  }
+  
+  public void set(FieldWritable that){
+    set(that.toString().split("\\t"));
   }
   
   
