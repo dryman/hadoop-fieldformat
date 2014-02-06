@@ -44,12 +44,19 @@ import org.apache.hadoop.classification.InterfaceStability;
 public class FieldWritable extends Text implements Map<String, String>, Cloneable{
   
   private HashMap<String, String> instance;
-  private String [] header;  
+  private String [] header;
+  private boolean isDirty = false;
   
   public FieldWritable() {
+    super();
+    header = null;
     instance = new HashMap<String, String>();
   }
   
+  /**
+   * Construct FieldWritable that only contains header
+   * @param header tab delimited header string
+   */
   public FieldWritable(String header) {
     super();
     this.header = header.split("\\t");
@@ -59,6 +66,10 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
     instance = new HashMap<String,String>();
   }
   
+  /**
+   * Construct FieldWritable that only contains header
+   * @param header header string array
+   */
   public FieldWritable(String [] header) {
     super();
     this.header = header;
@@ -68,24 +79,134 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
     instance = new HashMap<String,String>();
   }
   
+  /**
+   * Creates a new FieldWritable from old one.
+   * @param old
+   */
   public FieldWritable(FieldWritable old){
-    super();
-    super.set(old.getBytes(), 0, old.getLength());
+    super();    
     instance = new HashMap<String,String>();
     this.header = old.header;
-    if (header != null && this.getLength() > 0){
-      String [] contents = super.toString().split("\\t");
-      for (int i = 0; i < this.header.length; i++) {
-        instance.put(header[i], contents[i]);
+    super.set(old.getBytes(), 0, old.getLength());
+    if (header != null){
+      for (String h : header) {
+        instance.put(h, old.get(h));
       }
     }
+    isDirty = false;    
+  }
+  
+  /** Construct FieldWritable with header and array
+   * @param headers should only contain word characters [a-zA-Z_0-9], 
+   * so that it can be easily processed by downstream programs.
+   * @param contents should not contain tabs
+   */
+  public FieldWritable(String [] headers, String [] contents){
+    super();
+    instance = new HashMap<String, String>();
+    header = null;
+    if (headers.length != contents.length) {
+      throw new IllegalArgumentException("FieldWritable header & field lenth don't match. header: " 
+         +headers.length + " content: " + contents.length );
+    }
+    this.header = headers;
+    for (int i = 0; i < this.header.length; i++) {
+      if (!headers[i].matches("\\w+")) 
+        throw new IllegalArgumentException("header \"" + headers[i] +"\" must be word characters [a-zA-Z_0-9]");
+      instance.put(headers[i], contents[i]);
+    }
+    isDirty = true;
+  }
+  
+  /**
+   * Construct FieldWritable with header string and content string.
+   * String will be split to fields by split_regex
+   * @param header should only contain word characters [a-zA-Z_0-9],
+   * so that it can be easily processed by downstream programs.
+   * @param content each content field should not contain tabs.
+   * Tabs are used for separation for internal use. Even if you use comma
+   * separation, you cannot contain tab in each field.
+   * @param split_regex Regex for splitting strings.
+   */
+  public FieldWritable(String header, String content, String split_regex){
+    this(header.split(split_regex), content.split(split_regex));
+  }
+  
+  /**
+   * Construct FieldWritable with header string and content string.
+   * String will be split to fields by tabs
+   * @param header should only contain word characters [a-zA-Z_0-9],
+   * so that it can be easily processed by downstream programs.
+   * @param content each content field should not contain tabs.
+   */
+  public FieldWritable(String header, String content){
+    this(header,content, "\\t");
+  }
+  
+  /**
+   * Set the content fields. Will raise IllegalArgumentException if header
+   * and content fields count don't match 
+   * @param contents
+   */
+  public void set(String [] contents){
+    if (header.length != contents.length) {
+      throw new IllegalArgumentException("FieldWritable header & field lenth don't match. header: " 
+         +header.length + " content: " + contents.length );
+    }
+    for (int i = 0; i < this.header.length; i++) {
+      if (!header[i].matches("\\w+")) 
+        throw new IllegalArgumentException("header \"" + header[i] +"\" must be word characters [a-zA-Z_0-9]");
+      instance.put(header[i], contents[i]);
+    }
+    isDirty = true;
+  }
+  
+  /**
+   * Set the content by tab delimited string.
+   * Will raise IllegalArgumentException if header
+   * and content fields count don't match 
+   */
+  @Override
+  public void set(String content){
+    set(content.split("\\t"));
+  }
+  
+  /**
+   * Set the content by tab delimited utf8 bytes.
+   * Will raise IllegalArgumentException if header
+   * and content fields count don't match 
+   */
+  @Override
+  public void set(byte[] utf8){
+    Text txt = new Text(utf8);
+    set(txt.toString().split("\\t"));
+  }
+  
+  /**
+   * Set the content by tab delimited Text object
+   * Will raise IllegalArgumentException if header
+   * and content fields count don't match 
+   */
+  @Override
+  public void set(Text txt){
+    set(txt.toString().split("\\t"));
+  }
+  
+  /**
+   * Set the content by another FieldWritable format
+   * Will raise IllegalArgumentException if header
+   * and content fields count don't match 
+   */
+  public void set(FieldWritable that){
+    set(that.toString().split("\\t"));
   }
   
   public FieldWritable clone(){
+    if (isDirty) refreshContent();
     return new FieldWritable(this);
   }
   
-  /** A WritableComparator optimized for Text keys. */
+  /** WritableComparator optimized for Text keys. */
   public static class FieldComparator extends WritableComparator {
     public FieldComparator() {
       super(FieldWritable.class);
@@ -104,86 +225,30 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
     WritableComparator.define(FieldWritable.class, new FieldComparator());
   }
   
-  /** Construct fields from two String arrays
-   * @param headers should only contain word characters [a-zA-Z_0-9], 
-   * so that it can be easily processed by downstream programs.
-   * @param contents should not contain tabs
-   */
-  public FieldWritable(String [] headers, String [] contents){
-    super();
-    instance = new HashMap<String, String>();
-    header = null;
-    if (headers.length != contents.length) {
-      throw new IllegalArgumentException("FieldWritable header & field lenth don't match. header: " 
-         +headers.length + " content: " + contents.length );
-    }
-    this.header = headers;
-    super.set(StringUtils.join(contents, "\t"));
-    for (int i = 0; i < this.header.length; i++) {
-      if (!headers[i].matches("\\w+")) 
-        throw new IllegalArgumentException("header \"" + headers[i] +"\" must be word characters [a-zA-Z_0-9]");
-      instance.put(headers[i], contents[i]);
-    }
-  }
-  
-  /**
-   * Construct fields with header string and content string.
-   * String will be split to fields by split_regex
-   * @param header should only contain word characters [a-zA-Z_0-9],
-   * so that it can be easily processed by downstream programs.
-   * @param content each content field should not contain tabs.
-   * Tabs are used for separation for internal use. Even if you use comma
-   * separation, you cannot contain tab in each field.
-   * @param split_regex Regex for splitting strings.
-   */
-  public FieldWritable(String header, String content, String split_regex){
-    this(header.split(split_regex), content.split(split_regex));
-  }
-  
-  /**
-   * Construct fields with header string and content string.
-   * String will be split to fields by tabs
-   * @param header should only contain word characters [a-zA-Z_0-9],
-   * so that it can be easily processed by downstream programs.
-   * @param content each content field should not contain tabs.
-   */
-  public FieldWritable(String header, String content){
-    this(header,content, "\\t");
-  }
-  
-  
-  public void set(String [] contents){
-    if (header.length != contents.length) {
-      throw new IllegalArgumentException("FieldWritable header & field lenth don't match. header: " 
-         +header.length + " content: " + contents.length );
-    }
-    for (int i = 0; i < this.header.length; i++) {
-      if (!header[i].matches("\\w+")) 
-        throw new IllegalArgumentException("header \"" + header[i] +"\" must be word characters [a-zA-Z_0-9]");
-      instance.put(header[i], contents[i]);
-    }
-    super.set(StringUtils.join(contents, "\t"));
+  @Override
+  public byte[] copyBytes(){
+    if (isDirty) refreshContent();
+    return super.copyBytes();
   }
   
   @Override
-  public void set(String content){
-    set(content.split("\\t"));
+  public byte[] getBytes(){
+    if (isDirty) refreshContent();
+    return super.getBytes();
   }
   
   @Override
-  public void set(byte[] utf8){
-    Text txt = new Text(utf8);
-    set(txt.toString().split("\\t"));
+  public int getLength (){
+    if (isDirty) refreshContent();
+    return super.getLength();
   }
   
   @Override
-  public void set(Text txt){
-    set(txt.toString().split("\\t"));
+  public int charAt (int position){
+    if (isDirty) refreshContent();
+    return super.charAt(position);
   }
   
-  public void set(FieldWritable that){
-    set(that.toString().split("\\t"));
-  }
   
   
   /**
@@ -207,10 +272,12 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
         throw new IllegalArgumentException("FieldWritable header can contains only word characters [a-zA-Z_0-9]");
       instance.put(h, f);
     }
+    isDirty = false;
   }
 
   @Override
   public void write(DataOutput out) throws IOException {
+    if (isDirty) refreshContent();
     String h = StringUtils.join(header, "\t");
     Text.writeString(out, h);
     if (getLength()==0 && header!=null)
@@ -220,11 +287,13 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
   
   @Override
   public String toString(){
+    if (isDirty) refreshContent();
     return super.toString();
   }
   
   @Override 
   public boolean equals(Object o){
+    if (isDirty) refreshContent();
     if (o instanceof FieldWritable)
       return super.equals(o);
     return false;
@@ -232,13 +301,34 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
   
   @Override
   public int hashCode() {
+    if (isDirty) refreshContent();
     return super.hashCode();
   }
+  
+  
+  private void refreshContent(){
+    StringBuilder content = new StringBuilder();
+    if (header != null){
+      for (String h : header){
+        String c = instance.get(h);
+        content.append(c+"\t");
+      }
+      content.deleteCharAt(content.length()-1);
+      super.set(content.toString());
+    } else {
+      super.clear();
+    }
+    isDirty=false;
+  }
+  
+   
 
   @Override
   public void clear() {
     throw new UnsupportedOperationException("No put operation supported for unmodifiable map");
   }
+  
+//map interfaces
 
   @Override
   public boolean containsKey(Object key) {
@@ -275,7 +365,12 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
    */
   @Override
   public String put(String key, String value) {
-    throw new UnsupportedOperationException("No put operation supported for unmodifiable map");
+    if (instance.containsKey(key)){
+      isDirty = true;
+      return instance.put(key, value);
+    } else {
+      throw new UnsupportedOperationException("Cannot insert new key-value pair");  
+    }
   }
 
   /**
@@ -283,7 +378,9 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
    */
   @Override
   public void putAll(Map<? extends String, ? extends String> m) {
-    throw new UnsupportedOperationException("No put operation supported for unmodifiable map");
+    for (Entry<? extends String, ? extends String> e : m.entrySet()){
+      put(e.getKey(), e.getValue());
+    }
   }
 
   /**
