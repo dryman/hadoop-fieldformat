@@ -126,7 +126,12 @@ public class TestFieldWritable {
   @Test
   public void testEmptyClone() {
     FieldWritable f = new FieldWritable();
-    FieldWritable c = f.clone();
+    FieldWritable c = null;
+    try {
+      c = f.clone();
+    } catch (Exception e){
+      e.printStackTrace();
+    }    
     assertEquals(f, c);
   }
 
