@@ -18,9 +18,13 @@
 
 package org.apache.hadoop.io;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import org.junit.Test;
 
@@ -141,5 +145,59 @@ public class TestFieldWritable {
     assertEquals("def", f.toString());
   }
   
+  /**
+   * Redo all the tests for put. Else we won't know if the put would break the code.
+   */
+  
+  @Test
+  public void testPut(){
+    FieldWritable a = new FieldWritable("abc", "def");
+    FieldWritable b = new FieldWritable("abc", "ghi");
+    a.put("abc", "ghi");
+    assertEquals(b, a);
+  }
+  
+  @Test
+  public void testPutAll(){
+    FieldWritable a = new FieldWritable("a\tb\tc", "a\tb\tc");
+    FieldWritable b = new FieldWritable("a\tb\tc", "d\te\tc");
+    HashMap<String, String> c = new HashMap<String,String>();
+    c.put("a", "d");
+    c.put("b", "e");
+    a.putAll(c);
+    assertEquals(b, a);
+  }
+  
+  @Test
+  public void testPutCompare(){
+    FieldWritable a = new FieldWritable("abc", "def");
+    FieldWritable b = new FieldWritable("abc", "ghi");
+    a.put("abc", "ghi");
+    assertEquals(0, a.compareTo(b));
+  }
+  
+  @Test
+  public void testPutToString(){
+    FieldWritable a = new FieldWritable("abc", "def");
+    a.put("abc", "ghi");
+    assertEquals("ghi", a.toString());
+  }
 
+  @Test
+  public void testPutIO() throws IOException{
+    DataOutputBuffer out = new DataOutputBuffer();
+    DataInputBuffer in = new DataInputBuffer();
+    
+    out.reset();
+    FieldWritable testIn = new FieldWritable("col1\tcol2", "abc\tdef");
+    testIn.put("col1", "ghi");
+    testIn.write(out);
+    
+    FieldWritable testOut = new FieldWritable("col1\tcol2", "ghi\tdef");
+    
+    in.reset(out.getData(), out.getLength());
+    FieldWritable after = new FieldWritable();
+    after.readFields(in);
+    assertTrue(testOut.equals(after));
+  }
 }

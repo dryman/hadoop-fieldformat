@@ -365,7 +365,12 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
    */
   @Override
   public String put(String key, String value) {
-    throw new UnsupportedOperationException("No put operation supported for unmodifiable map");
+    if (instance.containsKey(key)){
+      isDirty = true;
+      return instance.put(key, value);
+    } else {
+      throw new UnsupportedOperationException("Cannot insert new key-value pair");  
+    }
   }
 
   /**
@@ -373,7 +378,9 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
    */
   @Override
   public void putAll(Map<? extends String, ? extends String> m) {
-    throw new UnsupportedOperationException("No put operation supported for unmodifiable map");
+    for (Entry<? extends String, ? extends String> e : m.entrySet()){
+      put(e.getKey(), e.getValue());
+    }
   }
 
   /**
