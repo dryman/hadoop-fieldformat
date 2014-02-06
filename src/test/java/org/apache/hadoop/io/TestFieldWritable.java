@@ -122,9 +122,38 @@ public class TestFieldWritable {
   @Test
   public void testCompare() {
     FieldWritable a = new FieldWritable("abc", "def");
-    FieldWritable b = new FieldWritable("abc", "def");    
-    int cmp = a.compareTo(b);
+    FieldWritable b = new FieldWritable("abc", "def");  
+    FieldWritable c = new FieldWritable("abc", "ghi");
+    int cmp;
+    cmp = a.compareTo(b);
     assertEquals(0, cmp);
+    cmp = a.compareTo(c);
+    assertTrue(cmp!=0);
+  }
+  
+  @Test
+  public void testComparator() throws IOException {
+    DataOutputBuffer out_a = new DataOutputBuffer();
+    DataOutputBuffer out_b = new DataOutputBuffer();
+    DataOutputBuffer out_c = new DataOutputBuffer();
+    out_a.reset();
+    out_b.reset();
+    out_c.reset();
+    FieldWritable.FieldComparator comparator = new FieldWritable.FieldComparator();
+    FieldWritable a = new FieldWritable("abc", "def");
+    FieldWritable b = new FieldWritable("abc", "def"); 
+    FieldWritable c = new FieldWritable("abc", "ghi"); 
+    a.write(out_a);
+    b.write(out_b);
+    c.write(out_c);
+    
+    int cmp1 = comparator.compare(out_a.getData(), 0, out_a.getLength(), 
+                                  out_b.getData(), 0, out_b.getLength());
+    assertTrue(cmp1 == 0);
+    int cmp2 = comparator.compare(out_a.getData(), 0, out_a.getLength(), 
+                                  out_c.getData(), 0, out_c.getLength());
+    assertTrue(cmp2 != 0);
+    assertEquals(cmp2, a.compareTo(c));
   }
   
   @Test
@@ -199,5 +228,32 @@ public class TestFieldWritable {
     FieldWritable after = new FieldWritable();
     after.readFields(in);
     assertTrue(testOut.equals(after));
+  }
+  
+  @Test
+  public void testPutComparator() throws IOException {
+    DataOutputBuffer out_a = new DataOutputBuffer();
+    DataOutputBuffer out_b = new DataOutputBuffer();
+    DataOutputBuffer out_c = new DataOutputBuffer();
+    out_a.reset();
+    out_b.reset();
+    out_c.reset();
+    FieldWritable.FieldComparator comparator = new FieldWritable.FieldComparator();
+    FieldWritable a = new FieldWritable("abc", "def");
+    FieldWritable b = new FieldWritable("abc", "def");
+    FieldWritable c = new FieldWritable("abc", "ghi");
+    
+    a.put("abc", "ghi");
+    a.write(out_a);
+    b.write(out_b);
+    c.write(out_c);
+    
+    int cmp1 = comparator.compare(out_a.getData(), 0, out_a.getLength(), 
+                                  out_b.getData(), 0, out_b.getLength());
+    assertTrue(cmp1 != 0);
+    int cmp2 = comparator.compare(out_a.getData(), 0, out_a.getLength(), 
+                                  out_c.getData(), 0, out_c.getLength());
+    assertTrue(cmp2 == 0);
+    assertEquals(cmp1, a.compareTo(b));
   }
 }
