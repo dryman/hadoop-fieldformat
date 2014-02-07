@@ -102,6 +102,10 @@ TODOS
 1. Test on YARN environment
 2. Setup TravisCI or Jenkins-CI
 3. Integrate into other hadoop tools
+4. Write more concrete document
+    * FieldWritable usage and limitations
+    * Output constraint (Need to be FieldWritable, NullWritable)
+5 test MultipleOutput
 
 LICENSE
 -------
