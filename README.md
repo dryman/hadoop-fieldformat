@@ -55,13 +55,27 @@ If you use wildcard characters in your path. `FieldInputFormat` will read differ
 Output is as simple as input, just specify the output format class to be `FieldOutputFormat.class`.
 
 ```java
-    job.setOutputFormatClass(FieldOutputFormat.class);
+job.setOutputFormatClass(FieldOutputFormat.class);
 
-    String [] header = {"ip", "user_agent", "cookie"};
-    String [] body = {ip, user_agent, cookie};
-    FieldWritable new_fields = new FieldWritable(header, body);
+String [] header = {"ip", "user_agent", "cookie"};
+String [] body = {ip, user_agent, cookie};
+FieldWritable new_fields = new FieldWritable(header, body);
 
-    context.write(new_fields, NullWritable.get());
+context.write(new_fields, NullWritable.get());
+```
+
+### Update fields
+
+```java
+
+String [] header = {"ip", "user_agent", "cookie"}
+String [] default = {"10.3.1.1", "Safari", "123456"};
+FieldWritable field = new FieldWritable(header, default);
+
+field.set("ip", "123.12.3.4");
+field.set("user_agent", "Chrome");
+
+context.write(field, NullWritable.get());
 ```
 
 INSTALL
@@ -105,6 +119,7 @@ TODOS
 4. Write more concrete document
     * FieldWritable usage and limitations
     * Output constraint (Need to be FieldWritable, NullWritable)
+    * Javadoc
 
 LICENSE
 -------
