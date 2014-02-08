@@ -85,7 +85,7 @@ Hadoop-FieldFormat uses maven for dependency management. To use it in your proje
     <dependency>
       <groupId>org.apache.hadoop-contrib</groupId>
       <artifactId>hadoop-fieldformat</artifactId>
-      <version>0.3.12</version>
+      <version>0.4.2</version>
     </dependency>
   </dependencies>
 ```
@@ -105,7 +105,6 @@ TODOS
 4. Write more concrete document
     * FieldWritable usage and limitations
     * Output constraint (Need to be FieldWritable, NullWritable)
-5 test MultipleOutput
 
 LICENSE
 -------
