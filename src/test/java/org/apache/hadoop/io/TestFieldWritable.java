@@ -256,4 +256,11 @@ public class TestFieldWritable {
     assertTrue(cmp2 == 0);
     assertEquals(cmp1, a.compareTo(b));
   }
+  
+  @Test
+  public void testEmptyContent2() {
+    FieldWritable a = new FieldWritable("abc");
+    a.put("abc", "def"); // should not fail
+    assertTrue(true);
+  }
 }
