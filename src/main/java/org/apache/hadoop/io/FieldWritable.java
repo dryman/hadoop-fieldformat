@@ -64,6 +64,9 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
       if (!key.matches("\\w+")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
     }
     instance = new HashMap<String,String>();
+    for (String s : this.header){
+      instance.put(s, "\\N");
+    }
   }
   
   /**
@@ -77,6 +80,9 @@ public class FieldWritable extends Text implements Map<String, String>, Cloneabl
       if (!key.matches("\\w+")) throw new IllegalArgumentException("header must be word characters [a-zA-Z_0-9]");
     }
     instance = new HashMap<String,String>();
+    for (String s : this.header){
+      instance.put(s, "\\N");
+    }
   }
   
   /**
