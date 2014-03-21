@@ -37,6 +37,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
  */
 public class FieldRecordReader extends LineRecordReader {
   private static final Log LOG = LogFactory.getLog(FieldRecordReader.class);
+  private static Path headerPath = null;
 
   private FieldWritable value = null;
   private String header = null;
@@ -57,24 +58,30 @@ public class FieldRecordReader extends LineRecordReader {
     Configuration job = context.getConfiguration();
     Path file = split.getPath();
     FileSystem fs = file.getFileSystem(job);
-    Path headerPath;
     if (fs.isFile(split.getPath())){
       headerPath = new Path(split.getPath().getParent().toString() + "/_logs/header.tsv");
     } else{
       headerPath = new Path(split.getPath().toString() + "/_logs/header.tsv");
     }
-    System.out.println("FieldReocrdReader reading header path: "+ headerPath);
-    LOG.debug("FieldReocrdReader reading header path: "+ headerPath);
-    FSDataInputStream headerIn = fs.open(headerPath);
-    BufferedReader br = new BufferedReader(new InputStreamReader(headerIn));
-    header = br.readLine();
-    br.close();
+    if (fs.exists(headerPath)){
+      LOG.debug("FieldReocrdReader reading header path: "+ headerPath);  
+      FSDataInputStream headerIn = fs.open(headerPath);
+      BufferedReader br = new BufferedReader(new InputStreamReader(headerIn));
+      header = br.readLine();
+      br.close();
+    } else {
+      LOG.debug("Couldn't find header path at: "+ headerPath);  
+    }
+
   }
 
   @Override
   public boolean nextKeyValue() throws IOException {
     if(super.nextKeyValue()){
       if (value == null) {
+        if (header == null){
+          throw new IOException("FieldInputFormat header is null, couldn't find it at path: "+headerPath);
+        }
         value = new FieldWritable(header); 
       }
       value.set(super.getCurrentValue());
